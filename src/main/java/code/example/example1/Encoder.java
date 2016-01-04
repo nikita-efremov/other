@@ -1,11 +1,11 @@
 package code.example.example1;
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
-import javax.crypto.KeyGenerator;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
+
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 
 /**
@@ -13,52 +13,54 @@ import java.security.Key;
  */
 public class Encoder {
 
-    public static void main(String[] args) {
-        try {
+    private static String CIPHER_NAME = "DES";
+    private static String CIPHER_CONFIGURATION = "DES/ECB/PKCS5Padding";
 
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
-            keyGenerator.init(56);
-            Key secretKey = keyGenerator.generateKey();
+    public static void main(String[] args) throws Exception {
+        if (args.length < 4) {
+            System.out.println("Not enought args were entered, so only key will be generated");
+            System.out.println("Your key is [" + generateKey() + "]");
+            System.out.println("\nUsage of encoder: \nEncoder [mode] [input file] [output file] [key in string representation]\n" +
+                    "Where [mode] is: 0 - for encoding, 1 - for decoding");
+            return;
+        }
 
-            byte[] key = secretKey.getEncoded();
+        BASE64Decoder decoder = new BASE64Decoder();
+        byte[] keyInByteRepresentation = decoder.decodeBuffer(args[3]);
+        Key key = new SecretKeySpec(keyInByteRepresentation,0,keyInByteRepresentation.length, CIPHER_NAME);
 
-            FileInputStream fis = new FileInputStream("original.txt");
-            FileOutputStream fos = new FileOutputStream("encrypted.txt");
-            encrypt(secretKey, fis, fos);
+        FileInputStream input = new FileInputStream(args[1]);
+        FileOutputStream output = new FileOutputStream(args[2]);
 
-            FileInputStream fis2 = new FileInputStream("encrypted.txt");
-            FileOutputStream fos2 = new FileOutputStream("decrypted.txt");
-            decrypt(secretKey, fis2, fos2);
-        } catch (Throwable e) {
-            e.printStackTrace();
+        switch (args[0]) {
+            case "0": {
+                System.out.println("Encoding mode was chosen");
+                encrypt(key, input, output);
+                System.out.println("Encoding finished");
+                break;
+            }
+            case "1": {
+                System.out.println("Decoding mode was chosen");
+                decrypt(key, input, output);
+                System.out.println("Decoding finished");
+                break;
+            }
+            default: throw new IllegalArgumentException("Wrong mode type were chosen: " + args[0]);
         }
     }
 
-    public static void encrypt(Key key, InputStream is, OutputStream os)
-            throws Throwable {
-        encryptOrDecrypt(key, Cipher.ENCRYPT_MODE, is, os);
+    public static void encrypt(Key key, InputStream is, OutputStream os) throws Exception {
+        Cipher cipher = Cipher.getInstance(CIPHER_CONFIGURATION);
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        CipherInputStream cis = new CipherInputStream(is, cipher);
+        doCopy(cis, os);
     }
 
-    public static void decrypt(Key key, InputStream is, OutputStream os)
-            throws Throwable {
-        encryptOrDecrypt(key, Cipher.DECRYPT_MODE, is, os);
-    }
-
-    public static void encryptOrDecrypt(Key key, int mode, InputStream is,
-                                        OutputStream os) throws Throwable {
-        Cipher cipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
-
-        if (mode == Cipher.ENCRYPT_MODE) {
-
-            cipher.init(Cipher.ENCRYPT_MODE, key);
-            CipherInputStream cis = new CipherInputStream(is, cipher);
-            doCopy(cis, os);
-        } else if (mode == Cipher.DECRYPT_MODE) {
-
-            cipher.init(Cipher.DECRYPT_MODE, key);
-            CipherOutputStream cos = new CipherOutputStream(os, cipher);
-            doCopy(is, cos);
-        }
+    public static void decrypt(Key key, InputStream is, OutputStream os) throws Exception {
+        Cipher cipher = Cipher.getInstance(CIPHER_CONFIGURATION);
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        CipherOutputStream cos = new CipherOutputStream(os, cipher);
+        doCopy(is, cos);
     }
 
     public static void doCopy(InputStream is, OutputStream os)
@@ -73,4 +75,10 @@ public class Encoder {
         is.close();
     }
 
+    private static String generateKey() throws Exception {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance(CIPHER_NAME);
+        keyGenerator.init(56);
+        Key keyToEncrypt = keyGenerator.generateKey();
+        return new BASE64Encoder().encode(keyToEncrypt.getEncoded());
+    }
 }
