@@ -6,6 +6,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.Key;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class Encoder {
 
@@ -33,14 +34,26 @@ public class Encoder {
                 System.out.println("Encoding mode was chosen. Starting to encode...");
                 long startTime = new Date().getTime();
                 encrypt(key, input, output);
-                System.out.println("Encoding finished. Encoding time is " + (new Date().getTime() - startTime) + " ms");
+                long endTime = new Date().getTime();
+                String encodingTime = String.format("%d min %d sec",
+                        TimeUnit.MILLISECONDS.toMinutes(endTime - startTime),
+                        TimeUnit.MILLISECONDS.toSeconds(endTime - startTime) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(endTime - startTime))
+                );
+                System.out.println("Encoding finished. Encoding time is " + encodingTime);
                 break;
             }
             case "1": {
                 System.out.println("Decoding mode was chosen. Starting to decode...");
                 long startTime = new Date().getTime();
                 decrypt(key, input, output);
-                System.out.println("Decoding finished. Decoding time is " + (new Date().getTime() - startTime) + " ms");
+                long endTime = new Date().getTime();
+                String decodingTime = String.format("%d min %d sec",
+                        TimeUnit.MILLISECONDS.toMinutes(endTime - startTime),
+                        TimeUnit.MILLISECONDS.toSeconds(endTime - startTime) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(endTime - startTime))
+                );
+                System.out.println("Decoding finished. Decoding time is " + decodingTime);
                 break;
             }
             default: throw new IllegalArgumentException("Wrong mode type were chosen: " + args[0]);
