@@ -7,10 +7,8 @@ import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.Key;
+import java.util.Date;
 
-/**
- * Created by herr on 02.01.2016.
- */
 public class Encoder {
 
     private static String CIPHER_NAME = "DES";
@@ -34,15 +32,17 @@ public class Encoder {
 
         switch (args[0]) {
             case "0": {
-                System.out.println("Encoding mode was chosen");
+                System.out.println("Encoding mode was chosen. Starting to encode...");
+                long startTime = new Date().getTime();
                 encrypt(key, input, output);
-                System.out.println("Encoding finished");
+                System.out.println("Encoding finished. Encoding time is " + (new Date().getTime() - startTime) + " ms");
                 break;
             }
             case "1": {
-                System.out.println("Decoding mode was chosen");
+                System.out.println("Decoding mode was chosen. Starting to decode...");
+                long startTime = new Date().getTime();
                 decrypt(key, input, output);
-                System.out.println("Decoding finished");
+                System.out.println("Decoding finished. Decoding time is " + (new Date().getTime() - startTime) + " ms");
                 break;
             }
             default: throw new IllegalArgumentException("Wrong mode type were chosen: " + args[0]);
