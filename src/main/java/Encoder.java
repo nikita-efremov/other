@@ -1,5 +1,3 @@
-package code.example.example1;
-
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
